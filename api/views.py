@@ -33,6 +33,6 @@ def add_record(request):
 def search(request):
     query = request.GET.get('q')
     posts = Post.objects.filter(query)
-    serializer = PostSerializer(posts, many=Ture)
+    serializer = PostSerializer(posts, many=True)
     return Response(serializer.data)
         
