@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 from app.apiResponse import prepareResponse
+from app import settings
 from api.models import *
 from api.serializers import *
 from django.contrib.postgres.search import SearchQuery, SearchVector, SearchRank
@@ -10,12 +11,15 @@ from django.contrib.postgres.search import SearchQuery, SearchVector, SearchRank
 
 class posts(viewsets.ModelViewSet):
 
+    queryset = Post()
+    serializer_class = PostSerializer()
+
     def records(self, request):
         """
         - Read all posts, Search, Sort, and page collection of posts
         params: 'page', 'search', 'order', 'type'
         """
-        posts = Post.objects.exclude(status=StatusChoises.DELETED)
+        posts = Post.objects.all().exclude(status=StatusChoises.DELETED)
         sort_by = request.GET.get('type')
         page = int(request.GET.get('page')) if 'page' in request.GET else 1
         startRecord = (page -1) * settings. PER_PAGE
@@ -28,14 +32,14 @@ class posts(viewsets.ModelViewSet):
             searchQuery = SearchQuery(query)
 
             posts = Post.objects\
-                .exclude(status=StatusChoices.DELETED)\
+                .exclude(status=StatusChoises.DELETED)\
                 .annotate(rank=SearchRank(vector,searchQuery))\
                 .filter('rank__gte=0.001')\
                 .order_by('-rank')
 
         # Sorting
         if 'order' in request.GET == 'desc':
-            posts = posts.exclude(status=StatusChoices.DELETED).all().order_by(sort_by.desc())
+            posts = posts.exclude(status=StatusChoises.DELETED).all().order_by(sort_by.desc())
 
         serializer = PostSerializer(posts.all()[startRecord:endRecord], many=True)
         return Response(serializer.data)
@@ -87,9 +91,10 @@ class posts(viewsets.ModelViewSet):
 
     def delete(self, request, id=None):
         post = Post.objects.filter(id=id).exclude(
-            status=StatusChoices.DELETED).first()
+            status=StatusChoises.DELETED).first()
 
         if post:
-            setattr(post, status, StatusChoises.DELETED)
+            Post.objects.filter(id=id).update(status=StatusChoises.DELETED)
+            return Response(prepareResponse({'total':0} , {}, ), 201)
 
         

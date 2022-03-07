@@ -1,6 +1,6 @@
 from django import views
 from django.urls import path
-from . import views
+from .views import posts
 
 urlpatterns = [
     path('posts/records', posts.as_view({'get':'records'})),

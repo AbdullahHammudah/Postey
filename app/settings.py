@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+PER_PAGE = 30
+
 
 # Application definition
 
@@ -82,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'posts',
         'USER': 'postgres',
-        'PASSWORD': '3333',
+        'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': '5432',
     }
