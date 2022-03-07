@@ -32,7 +32,7 @@ def add_record(request):
 @api_view(['GET'])
 def search(request):
     query = request.GET.get('q')
-    posts = Post.objects.filter(query)
+    posts = Post.objects.filter(title__search=query)
     serializer = PostSerializer(posts, many=True)
     return Response(serializer.data)
         
