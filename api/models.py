@@ -18,4 +18,16 @@ class Post (models.Model):
     class Meta:
         db_table = 'posts'
 
-    
+    def save(self, **kwargs):
+        self.full_clean()
+        super().save(**kwargs)
+
+    def clean(self):
+        super().clean()
+
+    def str(self):
+        return str(self.id)
+
+    @staticmethod
+    def protected():
+        return ['updated_at', 'created_at', 'status']
