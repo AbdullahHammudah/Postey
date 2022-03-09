@@ -20,7 +20,8 @@ class posts(viewsets.ModelViewSet):
         params: 'page', 'search', 'order', 'type'
         """
         posts = Post.objects.all().exclude(status=StatusChoises.DELETED)
-        sort_by = request.GET.get('type')
+        total = posts.count()
+        type = request.GET.get('type') if 'type' in request.GET else 'id'
         page = int(request.GET.get('page')) if 'page' in request.GET else 1
         startRecord = (page -1) * settings. PER_PAGE
         endRecord = startRecord + settings.PER_PAGE
@@ -34,15 +35,16 @@ class posts(viewsets.ModelViewSet):
             posts = Post.objects\
                 .exclude(status=StatusChoises.DELETED)\
                 .annotate(rank=SearchRank(vector,searchQuery))\
-                .filter('rank__gte=0.001')\
+                .filter(rank__gte='0.0000001')\
                 .order_by('-rank')
 
         # Sorting
-        if 'order' in request.GET == 'desc':
-            posts = posts.exclude(status=StatusChoises.DELETED).all().order_by(sort_by.desc())
+        if 'order' in request.GET:
+            if request.GET.get('order') == 'desc':
+                posts = posts.exclude(status=StatusChoises.DELETED).all().order_by('-'+type)
 
         serializer = PostSerializer(posts.all()[startRecord:endRecord], many=True)
-        return Response(serializer.data)
+        return Response(prepareResponse({'total':total, 'per_page':settings.PER_PAGE}, serializer.data))
 
     def record(self, request, id):
         """
@@ -67,11 +69,10 @@ class posts(viewsets.ModelViewSet):
         try:
             post.save()
             serializer = PostSerializer(post, many=False)
+            return Response(prepareResponse({'total':1}, serializer.data), 201)
         except Exception as error:
             return Response(prepareResponse({'status':422, 'instance':request.get_full_path()}, error, False), 422)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
+
 
     def update(self, request, id):
         post = Post.objects.exclude(
@@ -96,5 +97,7 @@ class posts(viewsets.ModelViewSet):
         if post:
             Post.objects.filter(id=id).update(status=StatusChoises.DELETED)
             return Response(prepareResponse({'total':0} , {}, ), 201)
+        else:
+            return Response(prepareResponse({"status": 404, "instance": request.get_full_path()}, {}, False), 404)
 
         
