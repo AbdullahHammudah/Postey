@@ -5,12 +5,14 @@ from app import settings
 from api.models import *
 from api.serializers import *
 from django.contrib.postgres.search import SearchQuery, SearchVector, SearchRank
+from rest_framework.permissions import IsAuthenticated
 
 
 
 
 class posts(viewsets.ModelViewSet):
 
+    permission_classes = [IsAuthenticated]
     queryset = Post()
     serializer_class = PostSerializer()
 
