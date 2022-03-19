@@ -5,16 +5,19 @@ from app import settings
 from api.models import *
 from api.serializers import *
 from django.contrib.postgres.search import SearchQuery, SearchVector, SearchRank
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,BasePermission,SAFE_METHODS
 
 
-
+# class PostsPermissions(BasePermission):
+    # def has_object_permission(self,request, view, obj):
+    #     if request.method in SAFE_METHODS:
+    #         return True
 
 class posts(viewsets.ModelViewSet):
 
     permission_classes = [IsAuthenticated]
-    queryset = Post()
-    serializer_class = PostSerializer()
+    serializer_class = PostSerializer
+    queryset = Post.objects.all()
 
     def records(self, request):
         """
@@ -37,7 +40,7 @@ class posts(viewsets.ModelViewSet):
             posts = Post.objects\
                 .exclude(status=StatusChoises.DELETED)\
                 .annotate(rank=SearchRank(vector,searchQuery))\
-                .filter(rank__gte='0.0000001')\
+                .filter(rank__gte='0.001')\
                 .order_by('-rank')
 
         # Sorting
@@ -101,5 +104,3 @@ class posts(viewsets.ModelViewSet):
             return Response(prepareResponse({'total':0} , {}, ), 201)
         else:
             return Response(prepareResponse({"status": 404, "instance": request.get_full_path()}, {}, False), 404)
-
-        

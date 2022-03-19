@@ -7,6 +7,11 @@ class StatusChoises(models.TextChoices):
     INACTIVE = 'inactive'
     DELETED = 'deleted'
 
+class UserChoices(models.TextChoices):
+    ADMIN = 'admin'
+    MODERATE = 'moderate'
+    NORMAL_USER = 'normal_user'
+
 class Post (models.Model):
     id = models.AutoField(primary_key=True,serialize=False)
     title = models.CharField(max_length=64, blank=False, null=False)
@@ -33,3 +38,6 @@ class Post (models.Model):
     @staticmethod
     def protected():
         return ['updated_at', 'created_at', 'status']
+
+class PostsUser(User):
+    type = models.CharField(max_length=16, choices=UserChoices.choices, default= UserChoices.NORMAL_USER)

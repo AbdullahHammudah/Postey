@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-PER_PAGE = 30
+PER_PAGE = 3
 
 CORS_ORIGIN_ALLOW_ALL = True
 
