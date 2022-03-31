@@ -24,7 +24,7 @@ class posts(viewsets.ModelViewSet):
         - Read all posts, Search, Sort, and page collection of posts
         params: 'page', 'search', 'order', 'type'
         """
-        posts = Post.objects.all().exclude(status=StatusChoises.DELETED)
+        posts = Post.objects.all(user=request.user).exclude(status=StatusChoises.DELETED)
         total = posts.count()
         type = request.GET.get('type') if 'type' in request.GET else 'id'
         page = int(request.GET.get('page')) if 'page' in request.GET else 1
@@ -37,7 +37,7 @@ class posts(viewsets.ModelViewSet):
             vector = SearchVector('title', 'description')
             searchQuery = SearchQuery(query)
 
-            posts = Post.objects\
+            posts = Post.objects.all(user=request.user)\
                 .exclude(status=StatusChoises.DELETED)\
                 .annotate(rank=SearchRank(vector,searchQuery))\
                 .filter(rank__gte='0.001')\
@@ -46,9 +46,9 @@ class posts(viewsets.ModelViewSet):
         # Sorting
         if 'order' in request.GET:
             if request.GET.get('order') == 'desc':
-                posts = posts.exclude(status=StatusChoises.DELETED).all().order_by('-'+type)
+                posts = posts.exclude(status=StatusChoises.DELETED).all(user=request.user).order_by('-'+type)
 
-        serializer = PostSerializer(posts.all()[startRecord:endRecord], many=True)
+        serializer = PostSerializer(posts[startRecord:endRecord], many=True)
         return Response(prepareResponse({'total':total, 'per_page':settings.PER_PAGE}, serializer.data))
 
     def record(self, request, id):
@@ -104,3 +104,9 @@ class posts(viewsets.ModelViewSet):
             return Response(prepareResponse({'total':0} , {}, ), 201)
         else:
             return Response(prepareResponse({"status": 404, "instance": request.get_full_path()}, {}, False), 404)
+    # Override 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        return Post.objects.select_related("user").filter(user=self.request.user)
