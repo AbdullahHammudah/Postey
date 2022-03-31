@@ -1,21 +1,27 @@
-from rest_framework import viewsets
+from rest_framework import viewsets,views
 from rest_framework.response import Response
 from app.apiResponse import prepareResponse
 from app import settings
 from api.models import *
 from api.serializers import *
+from api.permissions import *
 from django.contrib.postgres.search import SearchQuery, SearchVector, SearchRank
 from rest_framework.permissions import IsAuthenticated,BasePermission,SAFE_METHODS
 
 
-# class PostsPermissions(BasePermission):
-    # def has_object_permission(self,request, view, obj):
-    #     if request.method in SAFE_METHODS:
-    #         return True
+class LoginView(views.APIView):
+    """
+    validateing user and generating token
+    """
+    def login(self, request):
+        try:
+            request.user in User.objects.all()
+        except:
+            raise ValueError
 
 class posts(viewsets.ModelViewSet):
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [PostsPermission]
     serializer_class = PostSerializer
     queryset = Post.objects.all()
 

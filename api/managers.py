@@ -23,7 +23,8 @@ class CustomUserManager(BaseUserManager):
         user = self.create_user(
             email=self.normalize_email(email),
             username=username,
-            password=password
+            password=password,
+            **other_fields
         )
 
         user.is_admin = True

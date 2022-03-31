@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from .models import Post
+from .models import Post, User
 
-# class ReadUserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ['id','username','email']
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id','username','email']
 
 class PostSerializer(serializers.ModelSerializer):
     # user = serializers.HiddenField(default=serializers.CurrentUserDefault())
